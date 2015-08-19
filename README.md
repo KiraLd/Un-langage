@@ -1,7 +1,7 @@
 # Un-langage
 19/08
 Ce qui fonctionne:
-\n-conversion du langage en c depuis l'interpréteur
+-conversion du langage en c depuis l'interpréteur
 -instructions de base: +,-,<,>,=
 -goto/label
 -définition de fonction
