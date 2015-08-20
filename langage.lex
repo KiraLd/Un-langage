@@ -73,6 +73,11 @@ main	{
 		yylval.ival = _MAIN_;
 		return main_;
 	}
+
+inf	{
+		yylval.ival = _INF_;
+		return inf_;
+	}
 \;	{return yytext[0];}
 \)	{return yytext[0];}
 \(	{return yytext[0];}

@@ -23,4 +23,6 @@
 #define _EXIT_ 14
 #define _MAIN_ 15
 
+#define _INF_ 16
+
 #endif

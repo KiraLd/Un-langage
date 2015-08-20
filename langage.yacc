@@ -29,6 +29,7 @@
 %token <ival>exit_
 %token <ival>main_
 %token <ival>end_function
+%token <ival>inf_
 
 %type <ival>MAIN
 %type <ival>INSTR_
@@ -47,6 +48,9 @@
 %type <ival>F
 %type <ival>EXIT
 %type <ival>ALLOUER 
+%type <ival>ENTETE_IF
+%type <ival>STRUCTURE_IF
+%type <ival>INF
 %start PROGRAMME
 %%
 PROGRAMME	:	ALLOUER LISTE	EXIT	{
@@ -72,7 +76,7 @@ LISTE_INSTR	:	INSTR_	LISTE_INSTR
 		;
 	
 INSTR_	:	INSTR';'	{
-					if($1 != _LABEL_ && $1 != _END_ && $1 != _IF_)
+					if($1 != _LABEL_ && $1 != _END_ && $1 != _IF_ && $1 != _IN_)
 					{
 						fprintf(fp,";");
 					}
@@ -101,24 +105,57 @@ INSTR	:	OP	{
 						break;
 				}
 			}
-	|	BUF	OP	EXP	
+	|	BUF	' '	OP	' '	EXP	{
+								tabulation();
+								switch($3)
+								{
+									case _DECD_:
+										fprintf(fp,"buf = buf >> %d %%32",$5);
+										break;
+									case _DECG_:
+										fprintf(fp,"buf = buf << %d %%32",$5);
+										break;
+									case _PLUS_:
+										fprintf(fp,"buf += %d",$5);
+										break;
+									case _MOINS_:
+										fprintf(fp,"buf -= %d",$5);
+										break;
+									case _EGAL_:
+										fprintf(fp,"buf = %d",$5);
+										break;
+								}
+							}
+										
 	|	LABEL	' '	EXP	{
 						tabulation();
-						tabulation_++;
 						fprintf(fp,"label%d:",$3);
 					}
-	|	IF	EXP	'<'	EXP
-	|	END
+	|	STRUCTURE_IF
 	|	GOTO	' '	EXP	{
-						tabulation_--;
 						tabulation();
 						fprintf(fp,"goto label%d",$3);
 					}
-	|	PRINT	EXP
-	|	SCAN	EXP
+	|	PRINT	' '	EXP	{
+						tabulation();
+						fprintf(fp,"printf(\"%%c\",(char)tab[i])");
+					}
+	|	SCAN	' '	EXP	{
+						tabulation();
+						fprintf(fp,"if(scanf(\"%%d\",&tab[%d]) == -1)\n",$3);
+						tabulation();
+						fprintf(fp,"{\n");
+						tabulation();
+						fprintf(fp,"\tperror(\"\nErreur scan\")");
+						tabulation();
+						fprintf(fp,"}");
+					}
 	|	INSTR' '
-	|	F	'('	EXP	')'
-	;
+	|	F	'('	EXP	')'	{
+							tabulation();
+							fprintf(fp,"fonction%d()",$3);
+						}
+	;	
 	
 OP	:	plus
 	|	moins
@@ -161,6 +198,7 @@ IF	:	if_
 
 END	:	end_	{
 				tabulation_--;
+				tabulation();
 				fprintf(fp,"}\n");
 			}
 	;
@@ -183,8 +221,37 @@ EXIT	:	exit_
 MAIN	:	main_	{
 				tabulation_++;
 				fprintf(fp,"int main(void)\n{\n");
+				tabulation();
+				fprintf(fp,"tab = (int*)malloc(sizeof(int)*max);\n");
 			}
 	;
+
+ENTETE_IF	:	IF	' '	EXP	INF	' '	BUF	{
+										tabulation();
+										fprintf(fp,"if(%d < buf)\n",$3);
+										tabulation();
+										tabulation_++;
+										fprintf(fp,"{\n");
+									}
+		|	IF	' '	BUF	INF	' '	EXP	{
+										tabulation();
+										fprintf(fp,"if(buf < %d)\n",$6);
+										tabulation();
+										tabulation_++;
+										fprintf(fp,"{\n");
+									}
+		;
+
+LISTE_IF	:	INSTR_	LISTE_IF
+		|
+		;
+
+STRUCTURE_IF	:	ENTETE_IF	LISTE_IF	END
+		;
+
+INF	:	inf_
+	;
+
 
 %%
 void tabulation()
@@ -204,8 +271,8 @@ void tabulation()
 
 void creation_source()
 {
-	fprintf(fp,"#include <stdlib>\n");
-	fprintf(fp,"#include <stdio>\n");
+	fprintf(fp,"#include <stdlib.h>\n");
+	fprintf(fp,"#include <stdio.h>\n");
 	fprintf(fp,"int* tab = NULL;\n");
 	fprintf(fp,"int i = 0;\n");
 	fprintf(fp,"int buf = 0;\n");
@@ -214,9 +281,15 @@ void yyerror(char const *s)
 {
 	fprintf(stderr, "%s\n",s);
 }
-int main()
+extern FILE* yyin;
+int main(int argc, char* argv[])
 {
 	yydebug = 1;
+	if(argc < 2)
+	{
+		exit(0);
+	}
+	yyin = fopen(argv[1],"r");
 	fp = fopen("source.c","a");
 	if(fp != NULL)
 	{
