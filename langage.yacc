@@ -240,6 +240,13 @@ ENTETE_IF	:	IF	' '	EXP	INF	' '	BUF	{
 										tabulation_++;
 										fprintf(fp,"{\n");
 									}
+		|	IF	' '	EXP	INF	' '	EXP	{
+										tabulation();
+										fprintf(fp,"if(tab[%d] < tab[%d])\n",$3,$6);
+										tabulation();
+										tabulation_++;
+										fprintf(fp,"{\n");
+									}
 		;
 
 LISTE_IF	:	INSTR_	LISTE_IF
