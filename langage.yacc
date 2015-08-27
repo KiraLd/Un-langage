@@ -9,6 +9,7 @@
 	int function = 0;
 	int tabulation_ = 0;
 	void tabulation();
+	char* arg[5];
 %}
 %union {int ival;}
 %token <ival>cst 
@@ -55,6 +56,11 @@
 %%
 PROGRAMME	:	ALLOUER LISTE	EXIT	{
 							fprintf(fp,"\treturn 0;\n}");
+							fclose(fp);
+							if(execv("/usr/bin/gcc",arg)==-1)
+							{
+								perror("\nErreur lors de l'appel de gcc");
+							}
 							exit(0);
 						}
 		;
@@ -292,12 +298,20 @@ extern FILE* yyin;
 int main(int argc, char* argv[])
 {
 	yydebug = 1;
-	if(argc < 2)
+	if(argc < 4)
 	{
 		exit(0);
 	}
 	yyin = fopen(argv[1],"r");
-	fp = fopen("source.c","a");
+	arg[0] = "gcc";
+	arg[1] = "-o";
+	arg[2] = (char*)malloc(strlen(argv[3])+1);
+	strcpy(arg[2],argv[3]);
+	arg[3] = argv[3];
+	char* ext = ".c";
+	strcat(arg[3],ext);
+	arg[4] = NULL;
+	fp = fopen(argv[3],"a");
 	if(fp != NULL)
 	{
 		creation_source();

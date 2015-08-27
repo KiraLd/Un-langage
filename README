@@ -1,0 +1,17 @@
+19/08
+-conversion du langage en c depuis l'interpréteur
+-instructions de base: +,-,<,>,=
+-goto/label
+-définition de fonction
+-tabulation automatique du fichier
+
+20/08
+-chargement d'un fichier source -> compilation en c
+-instruction in/out
+-structure conditionnelle if
+-fichier d'exemple fonctionnel: hello world
+
+27/08
+-compilation gcc intégré au compilateur(fichier source -> fichier c -> fichier executable)
+-syntaxe: ./langage source -o executable
+
