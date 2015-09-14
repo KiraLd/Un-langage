@@ -1,5 +1,5 @@
 1
-main
+function
 @ = 72;
 label 1;
 +;
@@ -97,4 +97,7 @@ if 0 inf @
 goto 12;
 end;
 out 1;
+end_function
+main
+function(0);
 exit

@@ -3,13 +3,15 @@
 	#include <stdlib.h>
 	#include <string.h>
 	#include "define.h"
-	extern int yydebug;
+	#include <unistd.h>
+	//extern int yydebug;
 	FILE* fp = NULL;
 	int allouer = 0;
 	int function = 0;
 	int tabulation_ = 0;
 	void tabulation();
 	char* arg[5];
+	int source = 0;
 %}
 %union {int ival;}
 %token <ival>cst 
@@ -57,9 +59,31 @@
 PROGRAMME	:	ALLOUER LISTE	EXIT	{
 							fprintf(fp,"\treturn 0;\n}");
 							fclose(fp);
-							if(execv("/usr/bin/gcc",arg)==-1)
+							int pid = fork();
+							int i;
+							
+							if(pid == -1)
 							{
-								perror("\nErreur lors de l'appel de gcc");
+								perror("\nErreur lors de la création du processus fils");
+								exit(0);
+							}
+							if(pid == 0)
+							{
+								if(execv("/usr/bin/gcc",arg)==-1)
+								{
+									perror("\nErreur lors de l'appel de gcc");
+								}
+							}
+							else
+							{
+								waitpid(pid,NULL,0);
+								if(source == 0)
+								{
+									if(remove(arg[3]) == -1)
+									{
+										perror("\Erreur lors de la suppression du fichier intermédiaire");
+									}
+								}
 							}
 							exit(0);
 						}
@@ -152,7 +176,7 @@ INSTR	:	OP	{
 						tabulation();
 						fprintf(fp,"{\n");
 						tabulation();
-						fprintf(fp,"\tperror(\"\nErreur scan\")");
+						fprintf(fp,"\tperror(\"\\nErreur scan\");");
 						tabulation();
 						fprintf(fp,"}");
 					}
@@ -297,7 +321,7 @@ void yyerror(char const *s)
 extern FILE* yyin;
 int main(int argc, char* argv[])
 {
-	yydebug = 1;
+	//yydebug = 1;
 	if(argc < 4)
 	{
 		exit(0);
@@ -307,11 +331,17 @@ int main(int argc, char* argv[])
 	arg[1] = "-o";
 	arg[2] = (char*)malloc(strlen(argv[3])+1);
 	strcpy(arg[2],argv[3]);
-	arg[3] = argv[3];
+	arg[3] = (char*)malloc(strlen(argv[3])+3);
+	strcpy(arg[3],argv[3]);
 	char* ext = ".c";
 	strcat(arg[3],ext);
 	arg[4] = NULL;
-	fp = fopen(argv[3],"a");
+	printf("\n%s %s %s %s",arg[0],arg[1],arg[2],arg[3]);
+	if(argc >= 5 && argv[4][0] == '-' && argv[4][1] == 'c')
+	{
+		source = 1;
+	}
+	fp = fopen(arg[3],"a");
 	if(fp != NULL)
 	{
 		creation_source();

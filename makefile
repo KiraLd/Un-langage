@@ -18,7 +18,7 @@ lex.yy.c: langage.lex
 	$(LEX) langage.lex
 
 y.tab.c y.tab.h: langage.yacc
-	$(YACC) -v langage.yacc	--debug
+	$(YACC) -v langage.yacc
 
 clean:
 	rm -f *.o lex.yy.c *.tab.*

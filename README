@@ -15,3 +15,9 @@
 -compilation gcc intégré au compilateur(fichier source -> fichier c -> fichier executable)
 -syntaxe: ./langage source -o executable
 
+14/09
+-ajout "-c" pour conserver le fichier source c généré avant la création de l'exécutable
+-correction fonction in
+-test des fonctions -> OK
+-syntaxe: ./langage source -o executable -c   (-c conserve le fichier .c généré donc)
+
